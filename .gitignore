@@ -1,0 +1,12 @@
+# Project exclude paths
+/.gradle/
+/build/
+/build/classes/kotlin/main/
+.env
+.idea/
+.kotlin/
+*.iml
+.DS_Store
+Thumbs.db
+*.log
+out/
