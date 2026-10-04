@@ -2,7 +2,10 @@ package ru.magnum.data.database
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 class DatabaseFactory(
     settings: DatabaseSettings
@@ -23,5 +26,15 @@ class DatabaseFactory(
 
     override fun close() {
         dataSource.close()
+    }
+
+    suspend fun <T> dbQuery(
+        block: () -> T
+    ): T {
+        return withContext(Dispatchers.IO) {
+            transaction(database) {
+                block()
+            }
+        }
     }
 }

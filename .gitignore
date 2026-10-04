@@ -10,3 +10,5 @@
 Thumbs.db
 *.log
 out/
+collector.ps1
+project_code.txt

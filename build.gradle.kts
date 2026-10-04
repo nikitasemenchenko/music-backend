@@ -30,11 +30,13 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation(ktorLibs.server.testHost)
 
-    implementation("io.insert-koin:koin-ktor:4.0.0")
-    implementation("io.insert-koin:koin-logger-slf4j:4.0.0")
+    implementation(platform("io.insert-koin:koin-bom:4.2.2"))
+
+    implementation("io.insert-koin:koin-ktor")
+    implementation("io.insert-koin:koin-logger-slf4j")
     implementation("org.jetbrains.exposed:exposed-core:1.5.0")
     implementation("org.jetbrains.exposed:exposed-jdbc:1.5.0")
-
+    implementation("org.jetbrains.exposed:exposed-java-time:1.5.0")
     implementation("org.postgresql:postgresql:42.7.13")
 
     implementation("com.zaxxer:HikariCP:7.1.0")
