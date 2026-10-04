@@ -4,3 +4,10 @@ ktor:
   application:
     modules:
       - ru.magnum.ApplicationKt.module
+
+database:
+  jdbcUrl: "$DB_JDBC_URL"
+  username: "$DB_USERNAME"
+  password: "$DB_PASSWORD"
+  driverClassName: "org.postgresql.Driver"
+  maximumPoolSize: 10
