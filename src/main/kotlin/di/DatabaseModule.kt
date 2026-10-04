@@ -1,22 +1,15 @@
 package ru.magnum.di
 
-import io.ktor.server.config.ApplicationConfig
 import org.koin.dsl.module
 import org.koin.dsl.onClose
 import ru.magnum.data.database.DatabaseFactory
 import ru.magnum.data.database.DatabaseSettings
 
 fun databaseModule(
-    config: ApplicationConfig
+    settings: DatabaseSettings
 ) = module {
     single {
-        DatabaseSettings(
-            jdbcUrl = config.property("database.jdbcUrl").getString(),
-            username = config.property("database.username").getString(),
-            password = config.property("database.password").getString(),
-            driverClassName = config.property("database.driverClassName").getString(),
-            maximumPoolSize = config.property("database.maximumPoolSize").getString().toInt()
-        )
+        settings
     }
     single(createdAtStart = true) {
         DatabaseFactory(
