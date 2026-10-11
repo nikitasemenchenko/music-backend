@@ -5,9 +5,11 @@ import io.ktor.server.application.install
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
 import ru.magnum.config.databaseSettings
+import ru.magnum.config.storageSettings
 import ru.magnum.data.database.MigrationFactory
 import ru.magnum.di.appModule
 import ru.magnum.di.databaseModule
+import ru.magnum.di.storageModule
 import ru.magnum.plugins.configureRequestValidation
 import ru.magnum.plugins.configureRouting
 import ru.magnum.plugins.configureSerialization
@@ -20,6 +22,7 @@ fun main(args: Array<String>) {
 fun Application.module() {
 
     val databaseSettings = environment.config.databaseSettings()
+    val storageSettings = environment.config.storageSettings()
 
     MigrationFactory.migrate(
         databaseSettings
@@ -31,6 +34,9 @@ fun Application.module() {
             appModule,
             databaseModule(
                 databaseSettings
+            ),
+            storageModule(
+                storageSettings
             )
         )
     }
