@@ -135,4 +135,27 @@ class TrackRepositoryImpl(
             createdAt = this[TracksTable.createdAt],
         )
     }
+
+    override suspend fun getTrackById(id: Int): Track? {
+        return databaseFactory.dbQuery {
+            val row = TracksTable.join(
+                otherTable = AlbumsTable,
+                joinType = JoinType.LEFT,
+                additionalConstraint = {
+                    TracksTable.albumId eq AlbumsTable.id
+                }
+            )
+                .selectAll()
+                .where {
+                    TracksTable.id eq id
+                }
+                .singleOrNull()
+                ?: return@dbQuery null
+
+            val artists = loadArtists(listOf(id))[id].orEmpty()
+            val genres = loadGenres(listOf(id))[id].orEmpty()
+
+            row.toTrack(artists, genres)
+        }
+    }
 }

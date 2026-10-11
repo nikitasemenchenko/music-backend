@@ -4,4 +4,6 @@ import ru.magnum.domain.model.Track
 
 interface TrackRepository {
     suspend fun getTracks(): List<Track>
+
+    suspend fun getTrackById(id: Int): Track?
 }
