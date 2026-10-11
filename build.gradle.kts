@@ -43,4 +43,7 @@ dependencies {
 
     implementation("org.flywaydb:flyway-core:13.8.1")
     implementation("org.flywaydb:flyway-database-postgresql:13.8.1")
+
+    implementation("io.ktor:ktor-server-partial-content:3.6.0")
+    implementation("io.ktor:ktor-server-auto-head-response:3.6.0")
 }

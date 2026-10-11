@@ -24,4 +24,19 @@ class FileStorage(
             Files.readAllBytes(filePath)
         }
     }
+
+    suspend fun getPath(
+        relativePath: String
+    ): Path? {
+        return withContext(Dispatchers.IO){
+            val filePath = root.resolve(relativePath).normalize()
+            if(!filePath.startsWith(root)){
+                return@withContext null
+            }
+            if(!Files.isRegularFile(filePath)){
+                return@withContext null
+            }
+            filePath
+        }
+    }
 }
