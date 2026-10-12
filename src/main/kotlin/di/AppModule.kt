@@ -1,7 +1,9 @@
 package ru.magnum.di
 
 import org.koin.dsl.module
+import ru.magnum.application.CreateTrackService
 import ru.magnum.data.media.TrackAudioProvider
+import ru.magnum.data.repository.TrackAdminRepository
 import ru.magnum.data.repository.TrackMediaRepositoryImpl
 import ru.magnum.data.repository.TrackRepositoryImpl
 import ru.magnum.domain.repository.TrackMediaRepository
@@ -27,6 +29,19 @@ val appModule = module {
     single {
         TrackAudioProvider(
             databaseFactory = get(),
+            fileStorage = get()
+        )
+    }
+
+    single {
+        TrackAdminRepository(
+            databaseFactory = get()
+        )
+    }
+
+    factory {
+        CreateTrackService(
+            repository = get(),
             fileStorage = get()
         )
     }
