@@ -1,6 +1,7 @@
 package ru.magnum.data.repository
 
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import ru.magnum.data.database.DatabaseFactory
@@ -11,6 +12,7 @@ import ru.magnum.data.table.TrackArtistsTable
 import ru.magnum.data.table.TrackGenresTable
 import ru.magnum.data.table.TracksTable
 import ru.magnum.domain.model.CreateTrack
+import ru.magnum.domain.model.DeletedTrack
 
 class TrackAdminRepository(
     private val databaseFactory: DatabaseFactory
@@ -63,6 +65,23 @@ class TrackAdminRepository(
         track.genreIds.forEach { genreId ->
             val exists = GenresTable.selectAll().where { GenresTable.id eq genreId }.any()
             require(exists) { "Genre $genreId not found" }
+        }
+    }
+
+    suspend fun deleteTrack(
+        id: Int
+    ): DeletedTrack? {
+        return databaseFactory.dbQuery {
+            val track = TracksTable.selectAll().where { TracksTable.id eq id }.singleOrNull()
+            if(track == null){
+                return@dbQuery null
+            }
+            val deletedTrack = DeletedTrack(
+                audioPath = track[TracksTable.audioPath],
+                coverPath = track[TracksTable.coverPath]
+            )
+            TracksTable.deleteWhere { TracksTable.id eq id }
+            deletedTrack
         }
     }
 }

@@ -14,12 +14,14 @@ import ru.magnum.api.dto.CreateTrackRequest
 import ru.magnum.api.dto.CreateTrackResponse
 import ru.magnum.api.dto.ErrorResponse
 import ru.magnum.application.CreateTrackService
+import ru.magnum.application.DeleteTrackService
 import ru.magnum.data.storage.FileStorage
 import ru.magnum.domain.model.CreateTrack
 import java.nio.file.Path
 
 fun Route.adminTrackRoutes() {
     val createTrackService by inject<CreateTrackService>()
+    val deleteTrackService by inject<DeleteTrackService>()
     val fileStorage by inject<FileStorage>()
 
     route("/api/v1/admin/tracks") {
@@ -144,6 +146,31 @@ fun Route.adminTrackRoutes() {
                     fileStorage.deleteTemp(it)
                 }
             }
+        }
+
+        delete("/{id}"){
+            val id = call.parameters["id"]?.toIntOrNull()
+            if(id == null) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    ErrorResponse(
+                        "Invalid id"
+                    )
+                )
+                return@delete
+            }
+            val deleted = deleteTrackService.deleteTrack(id)
+            if(!deleted) {
+                call.respond(
+                    HttpStatusCode.NotFound,
+                    ErrorResponse(
+                        "Track not found"
+                    )
+                )
+                return@delete
+            }
+            call.respond(HttpStatusCode.NoContent)
+
         }
     }
 }
