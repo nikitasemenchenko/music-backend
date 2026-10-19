@@ -13,15 +13,19 @@ import org.koin.ktor.ext.inject
 import ru.magnum.api.dto.CreateTrackRequest
 import ru.magnum.api.dto.CreateTrackResponse
 import ru.magnum.api.dto.ErrorResponse
+import ru.magnum.api.dto.UpdateTrackRequest
 import ru.magnum.application.CreateTrackService
 import ru.magnum.application.DeleteTrackService
+import ru.magnum.application.UpdateTrackService
 import ru.magnum.data.storage.FileStorage
 import ru.magnum.domain.model.CreateTrack
+import ru.magnum.domain.model.UpdateTrack
 import java.nio.file.Path
 
 fun Route.adminTrackRoutes() {
     val createTrackService by inject<CreateTrackService>()
     val deleteTrackService by inject<DeleteTrackService>()
+    val updateTrackService by inject<UpdateTrackService>()
     val fileStorage by inject<FileStorage>()
 
     route("/api/v1/admin/tracks") {
@@ -108,10 +112,10 @@ fun Route.adminTrackRoutes() {
                     track = CreateTrack(
                         title = request.title.trim(),
                         artistIds = request.artistIds.distinct(),
-                        albumId = request.albumId,
+                        albumIds = request.albumIds.distinct(),
                         genreIds = request.genreIds.distinct(),
                         durationMs = request.durationMs,
-                        releaseYear = request.releaseYear
+                        releaseDate = request.releaseDate
                     ),
                     audioTempFile = audioFile,
                     audioExtension = audioExtension!!,
@@ -172,6 +176,164 @@ fun Route.adminTrackRoutes() {
             call.respond(HttpStatusCode.NoContent)
 
         }
+        put("/{id}") {
+            val id = call.parameters["id"]?.toIntOrNull()
+
+            if(id == null || id < 0) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    ErrorResponse(
+                        "Invalid id"
+                    )
+                )
+                return@put
+            }
+
+            var metadataJson: String? = null
+            var audioTempFile: Path? = null
+            var audioExtension: String? = null
+            var coverTempFile: Path? = null
+            var coverExtension: String? = null
+
+            try {
+                val multipart = call.receiveMultipart()
+
+                multipart.forEachPart { part ->
+                    try {
+                        when(part) {
+                            is PartData.FormItem -> {
+                                if(part.name == "metadata") {
+                                    metadataJson = part.value
+                                }
+                            }
+                            is PartData.FileItem -> {
+                                when(part.name) {
+                                    "audio" -> {
+                                        val extension = fileExtension(part.originalFileName)
+                                        if (extension != "mp3") {
+                                            throw IllegalArgumentException(
+                                                "File extension must be 'mp3'"
+                                            )
+                                        }
+                                        val tempFile = fileStorage.createTempFile(extension)
+                                        try {
+                                            part.provider()
+                                                .copyAndClose(
+                                                    tempFile.toFile().writeChannel()
+                                                )
+                                        } catch (e: Exception) {
+                                            fileStorage.deleteTemp(
+                                                tempFile
+                                            )
+                                            throw e
+                                        }
+                                        audioTempFile = tempFile
+                                        audioExtension = extension
+                                    }
+                                    "cover" -> {
+                                        val extension = fileExtension(part.originalFileName)
+                                        if (extension !in COVER_EXTENSIONS
+                                        ) {
+                                            throw IllegalArgumentException(
+                                                "Cover must be JPG, JPEG, PNG or WEBP"
+                                            )
+                                        }
+
+                                        val tempFile = fileStorage.createTempFile(extension)
+                                        try {
+                                            part.provider()
+                                                .copyAndClose(
+                                                    tempFile.toFile().writeChannel()
+                                                )
+                                        } catch (e: Exception) {
+                                            fileStorage.deleteTemp(
+                                                tempFile
+                                            )
+                                            throw e
+                                        }
+                                        coverTempFile = tempFile
+                                        coverExtension = extension
+                                    }
+                                }
+                            }
+                            else -> Unit
+                        }
+                    } finally {
+                        part.release()
+                    }
+                }
+                val request = metadataJson?.let {
+                    Json.decodeFromString<UpdateTrackRequest>(it)
+                } ?: throw IllegalArgumentException("Metadata is required")
+
+                require(
+                    request.title.isNotBlank()
+                ) {
+                    "Title must not be blank"
+                }
+
+                require(
+                    request.artistIds.isNotEmpty()
+                ) {
+                    "At least one artist is required"
+                }
+
+                require(
+                    request.durationMs > 0
+                ) {
+                    "Duration must be greater than zero"
+                }
+
+                val updated = updateTrackService.updateTrack(
+                    id = id,
+                    track = UpdateTrack(
+                        title = request.title.trim(),
+                        artistIds = request.artistIds.distinct(),
+                        albumIds = request.albumIds.distinct(),
+                        genreIds = request.genreIds.distinct(),
+                        durationMs = request.durationMs,
+                        releaseDate = request.releaseDate
+                    ),
+                    audioTempFile = audioTempFile,
+                    audioExtension = audioExtension,
+                    coverTempFile = coverTempFile,
+                    coverExtension = coverExtension
+                )
+                if(!updated) {
+                    call.respond(
+                        HttpStatusCode.NotFound,
+                        ErrorResponse(
+                            "Track not found"
+                        )
+                    )
+                    return@put
+                }
+                call.respond(
+                    HttpStatusCode.NoContent
+                )
+            } catch (e: SerializationException) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    ErrorResponse(
+                        "Invalid metadata format"
+                    )
+                )
+            } catch (e: IllegalArgumentException) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    ErrorResponse(
+                        e.message ?: "Bad request"
+                    )
+                )
+            } finally {
+                audioTempFile?.let {
+                    fileStorage.deleteTemp(it)
+                }
+                coverTempFile?.let {
+                    fileStorage.deleteTemp(it)
+                }
+            }
+        }
     }
 }
 
@@ -193,20 +355,17 @@ private val COVER_EXTENSIONS =
     )
 
 private fun validateRequest(request: CreateTrackRequest) {
-
     require(
         request.title.isNotBlank()
     ) {
         "Title must not be blank"
     }
 
-
     require(
         request.artistIds.isNotEmpty()
     ) {
         "At least one artist is required"
     }
-
 
     require(
         request.durationMs > 0

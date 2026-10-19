@@ -1,6 +1,7 @@
 package ru.magnum.domain.usecase
 
-import ru.magnum.domain.model.TrackCover
+
+import ru.magnum.domain.model.Cover
 import ru.magnum.domain.repository.TrackMediaRepository
 
 class GetTrackCoverUseCase(
@@ -8,7 +9,7 @@ class GetTrackCoverUseCase(
 ){
     suspend operator fun invoke(
         trackId: Int
-    ): TrackCover? {
+    ): Cover? {
         return repository.getCover(trackId)
     }
 }

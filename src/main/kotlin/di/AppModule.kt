@@ -3,6 +3,7 @@ package ru.magnum.di
 import org.koin.dsl.module
 import ru.magnum.application.CreateTrackService
 import ru.magnum.application.DeleteTrackService
+import ru.magnum.application.UpdateTrackService
 import ru.magnum.data.media.TrackAudioProvider
 import ru.magnum.data.repository.TrackAdminRepository
 import ru.magnum.data.repository.TrackMediaRepositoryImpl
@@ -49,6 +50,13 @@ val appModule = module {
 
     factory {
         DeleteTrackService(
+            repository = get(),
+            fileStorage = get()
+        )
+    }
+
+    factory {
+        UpdateTrackService(
             repository = get(),
             fileStorage = get()
         )

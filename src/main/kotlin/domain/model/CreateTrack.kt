@@ -1,10 +1,13 @@
 package ru.magnum.domain.model
 
+import java.time.LocalDate
+
+
 data class CreateTrack(
     val title: String,
     val artistIds: List<Int>,
-    val albumId: Int?,
+    val albumIds: List<Int>,
     val genreIds: List<Int>,
     val durationMs: Int,
-    val releaseYear: Short?
+    val releaseDate: LocalDate?
 )

@@ -12,10 +12,11 @@ fun Track.toResponse(): TrackResponse {
                 name = it.name
             )
         },
-        album = album?.let {
+        albums = albums.map {
             AlbumResponse(
                 id = it.id,
-                title = it.title
+                title = it.title,
+                releaseDate = it.releaseDate
             )
         },
         genres = genres.map {
@@ -25,6 +26,6 @@ fun Track.toResponse(): TrackResponse {
             )
         },
         duration = durationMs,
-        releaseYear = releaseYear
+        releaseDate = releaseDate
     )
 }

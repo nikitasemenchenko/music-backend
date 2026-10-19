@@ -10,6 +10,7 @@ import ru.magnum.data.database.DatabaseFactory
 import ru.magnum.data.table.AlbumsTable
 import ru.magnum.data.table.ArtistsTable
 import ru.magnum.data.table.GenresTable
+import ru.magnum.data.table.TrackAlbumsTable
 import ru.magnum.data.table.TrackArtistsTable
 import ru.magnum.data.table.TrackGenresTable
 import ru.magnum.data.table.TracksTable
@@ -24,13 +25,7 @@ class TrackRepositoryImpl(
 ) : TrackRepository {
     override suspend fun getTracks(): List<Track> {
         return databaseFactory.dbQuery {
-            val trackRows = TracksTable.join(
-                otherTable = AlbumsTable,
-                joinType = JoinType.LEFT,
-                additionalConstraint = {
-                    TracksTable.albumId eq AlbumsTable.id
-                }
-            )
+            val trackRows = TracksTable
                 .selectAll()
                 .toList()
 
@@ -44,11 +39,13 @@ class TrackRepositoryImpl(
 
             val artistsByTrackId = loadArtists(trackIds)
             val genresByTrackIds = loadGenres(trackIds)
+            val albumsByTrackIds = loadAlbums(trackIds)
 
             trackRows.map { row ->
                 row.toTrack(
                     artists = artistsByTrackId[row[TracksTable.id]].orEmpty(),
-                    genres = genresByTrackIds[row[TracksTable.id]].orEmpty()
+                    genres = genresByTrackIds[row[TracksTable.id]].orEmpty(),
+                    albums = albumsByTrackIds[row[TracksTable.id]].orEmpty()
                 )
             }
 
@@ -111,40 +108,56 @@ class TrackRepositoryImpl(
             )
     }
 
+    private fun loadAlbums(trackIds: List<Int>): Map<Int, List<Album>> {
+        return TrackAlbumsTable.join(
+            otherTable = AlbumsTable,
+            joinType = JoinType.INNER,
+            additionalConstraint = {
+                TrackAlbumsTable.albumId eq AlbumsTable.id
+            }
+        )
+            .select(
+                TrackAlbumsTable.trackId,
+                AlbumsTable.id,
+                AlbumsTable.title,
+                AlbumsTable.releaseDate
+            )
+            .where {
+                TrackAlbumsTable.trackId inList trackIds
+            }
+            .map { row ->
+                row[TrackAlbumsTable.trackId] to Album(
+                    id = row[AlbumsTable.id],
+                    title = row[AlbumsTable.title],
+                    releaseDate = row[AlbumsTable.releaseDate]
+                )
+            }
+            .groupBy(
+                keySelector = {it.first},
+                valueTransform = {it.second}
+            )
+    }
+
     private fun ResultRow.toTrack(
         artists: List<Artist>,
-        genres: List<Genre>
+        genres: List<Genre>,
+        albums: List<Album>
     ): Track {
-        val albumId = this[TracksTable.albumId]
-        val album = if (albumId != null) {
-            Album(
-                id = albumId,
-                title = this[AlbumsTable.title],
-            )
-        } else {
-            null
-        }
         return Track(
             id = this[TracksTable.id],
             title = this[TracksTable.title],
             artists = artists,
-            album = album,
+            albums = albums,
             genres = genres,
             durationMs = this[TracksTable.durationMs],
-            releaseYear = this[TracksTable.releaseYear],
+            releaseDate = this[TracksTable.releaseDate],
             createdAt = this[TracksTable.createdAt],
         )
     }
 
     override suspend fun getTrackById(id: Int): Track? {
         return databaseFactory.dbQuery {
-            val row = TracksTable.join(
-                otherTable = AlbumsTable,
-                joinType = JoinType.LEFT,
-                additionalConstraint = {
-                    TracksTable.albumId eq AlbumsTable.id
-                }
-            )
+            val row = TracksTable
                 .selectAll()
                 .where {
                     TracksTable.id eq id
@@ -154,8 +167,9 @@ class TrackRepositoryImpl(
 
             val artists = loadArtists(listOf(id))[id].orEmpty()
             val genres = loadGenres(listOf(id))[id].orEmpty()
+            val albums = loadAlbums(listOf(id))[id].orEmpty()
 
-            row.toTrack(artists, genres)
+            row.toTrack(artists, genres, albums)
         }
     }
 }

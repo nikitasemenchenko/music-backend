@@ -5,14 +5,14 @@ import org.jetbrains.exposed.v1.jdbc.select
 import ru.magnum.data.database.DatabaseFactory
 import ru.magnum.data.storage.FileStorage
 import ru.magnum.data.table.TracksTable
-import ru.magnum.domain.model.TrackCover
+import ru.magnum.domain.model.Cover
 import ru.magnum.domain.repository.TrackMediaRepository
 
 class TrackMediaRepositoryImpl(
     private val databaseFactory: DatabaseFactory,
     private val fileStorage: FileStorage
 ) : TrackMediaRepository {
-    override suspend fun getCover(trackId: Int): TrackCover? {
+    override suspend fun getCover(trackId: Int): Cover? {
         val coverPath = databaseFactory.dbQuery {
             TracksTable.select(
                 TracksTable.coverPath
@@ -27,7 +27,7 @@ class TrackMediaRepositoryImpl(
 
         val bytes = fileStorage.read(coverPath) ?: return null
 
-        return TrackCover(
+        return Cover(
             bytes = bytes,
             contentType = resolveContentType(coverPath)
         )
