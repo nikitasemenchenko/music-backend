@@ -33,7 +33,7 @@ fun Route.trackRoutes() {
         }
 
         get("/{id}") {
-            val id = call.parameters["id"]?.toIntOrNull()
+            val id = call.trackIdOrNull()
             if (id == null || id <= 0) {
                 call.respond(
                     status = HttpStatusCode.BadRequest,
@@ -59,7 +59,7 @@ fun Route.trackRoutes() {
         }
 
         get("/{id}/cover") {
-            val id = call.parameters["id"]?.toIntOrNull()
+            val id = call.trackIdOrNull()
             if (id == null || id <= 0) {
                 call.respond(
                     status = HttpStatusCode.BadRequest,
@@ -88,7 +88,7 @@ fun Route.trackRoutes() {
         }
 
         get("/{id}/stream") {
-            val id = call.parameters["id"]?.toIntOrNull()
+            val id = call.trackIdOrNull()
             if (id == null || id <= 0) {
                 call.respond(
                     status = HttpStatusCode.BadRequest,

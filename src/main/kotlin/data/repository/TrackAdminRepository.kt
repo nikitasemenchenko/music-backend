@@ -1,8 +1,12 @@
 package ru.magnum.data.repository
 
+import org.jetbrains.exposed.v1.core.Column
+import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import ru.magnum.data.database.DatabaseFactory
@@ -57,24 +61,63 @@ class TrackAdminRepository(
         }
     }
 
+
     private fun validate(
         albumIds: List<Int>,
         artistIds: List<Int>,
         genreIds: List<Int>
     ) {
-        albumIds.forEach { albumId ->
-            val exists = AlbumsTable.selectAll().where { AlbumsTable.id eq albumId }.any()
-            require(exists) { "Album $albumId not found" }
+        requireAllExist(
+            table = AlbumsTable,
+            idColumn = AlbumsTable.id,
+            ids = albumIds,
+            entityName = "Albums"
+        )
+
+        requireAllExist(
+            table = ArtistsTable,
+            idColumn = ArtistsTable.id,
+            ids = artistIds,
+            entityName = "Artists"
+        )
+
+        requireAllExist(
+            table = GenresTable,
+            idColumn = GenresTable.id,
+            ids = genreIds,
+            entityName = "Genres"
+        )
+    }
+
+    private fun requireAllExist(
+        table: Table,
+        idColumn: Column<Int>,
+        ids: List<Int>,
+        entityName: String
+    ) {
+        val uniqueIds = ids.distinct()
+
+        if (uniqueIds.isEmpty()) {
+            return
         }
-        artistIds.forEach { artistId ->
-            val exists = ArtistsTable.selectAll().where { ArtistsTable.id eq artistId }.any()
-            require(exists) { "Artist $artistId not found" }
-        }
-        genreIds.forEach { genreId ->
-            val exists = GenresTable.selectAll().where { GenresTable.id eq genreId }.any()
-            require(exists) { "Genre $genreId not found" }
+
+        val existingIds = table
+            .select(idColumn)
+            .where {
+                idColumn inList uniqueIds
+            }
+            .map { row ->
+                row[idColumn]
+            }
+            .toSet()
+
+        val missingIds = uniqueIds.toSet() - existingIds
+
+        require(missingIds.isEmpty()) {
+            "$entityName not found: $missingIds"
         }
     }
+
 
     suspend fun deleteTrack(
         id: Int

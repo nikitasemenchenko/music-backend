@@ -8,8 +8,8 @@ import ru.magnum.api.routes.trackRoutes
 
 fun Application.configureRouting() {
     routing {
-        get("/") {
-            call.respondText("Hello, World!")
+        get("/health/live") {
+            call.respondText("OK")
         }
         trackRoutes()
         adminTrackRoutes()

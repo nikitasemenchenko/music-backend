@@ -11,7 +11,7 @@ data class TrackResponse(
     val artists: List<ArtistResponse>,
     val albums: List<AlbumResponse>,
     val genres: List<GenreResponse>,
-    val duration: Int,
+    val durationMs: Int,
     @Serializable(with = LocalDateSerializer::class)
     val releaseDate: LocalDate?
 )

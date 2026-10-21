@@ -1,12 +1,14 @@
 package ru.magnum.api.serialization
 
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import java.time.LocalDate
+import java.time.format.DateTimeParseException
 
 object LocalDateSerializer : KSerializer<LocalDate> {
     override val descriptor: SerialDescriptor =
@@ -27,8 +29,10 @@ object LocalDateSerializer : KSerializer<LocalDate> {
     override fun deserialize(
         decoder: Decoder
     ): LocalDate {
-        return LocalDate.parse(
-            decoder.decodeString()
-        )
+        return try {
+            LocalDate.parse(decoder.decodeString())
+        } catch (e: DateTimeParseException) {
+            throw SerializationException("Invalid date", e)
+        }
     }
 }

@@ -25,7 +25,7 @@ fun Track.toResponse(): TrackResponse {
                 name = it.name
             )
         },
-        duration = durationMs,
+        durationMs = durationMs,
         releaseDate = releaseDate
     )
 }

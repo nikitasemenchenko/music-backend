@@ -12,5 +12,5 @@ data class CreateTrackRequest(
     val genreIds: List<Int>,
     val durationMs: Int,
     @Serializable(with = LocalDateSerializer::class)
-    val releaseDate: LocalDate?
+    val releaseDate: LocalDate? = null
 )

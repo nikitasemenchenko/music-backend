@@ -58,11 +58,11 @@ class FileStorage(
         path: Path
     ){
         withContext(Dispatchers.IO) {
-            val normalizePath = path.toAbsolutePath().normalize()
-            if(!normalizePath.startsWith(root)){
-                return@withContext
+            val normalizedPath = path.toAbsolutePath().normalize()
+            require(normalizedPath.startsWith(tempRoot)) {
+                "Invalid temporary file path"
             }
-            Files.deleteIfExists(normalizePath)
+            Files.deleteIfExists(normalizedPath)
         }
     }
 

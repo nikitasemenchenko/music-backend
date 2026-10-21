@@ -23,7 +23,6 @@ dependencies {
     implementation(ktorLibs.server.core)
     implementation(ktorLibs.server.cors)
     implementation(ktorLibs.server.netty)
-    implementation(ktorLibs.server.requestValidation)
     implementation(ktorLibs.server.statusPages)
     implementation(libs.logback.classic)
 
@@ -44,6 +43,6 @@ dependencies {
     implementation("org.flywaydb:flyway-core:13.8.1")
     implementation("org.flywaydb:flyway-database-postgresql:13.8.1")
 
-    implementation("io.ktor:ktor-server-partial-content:3.6.0")
-    implementation("io.ktor:ktor-server-auto-head-response:3.6.0")
+    implementation(ktorLibs.server.partialContent)
+    implementation(ktorLibs.server.autoHeadResponse)
 }
