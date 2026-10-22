@@ -1,4 +1,3 @@
-
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(ktorLibs.plugins.ktor)
@@ -45,4 +44,12 @@ dependencies {
 
     implementation(ktorLibs.server.partialContent)
     implementation(ktorLibs.server.autoHeadResponse)
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
+    testImplementation("org.testcontainers:postgresql:1.21.4")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
