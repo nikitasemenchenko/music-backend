@@ -1,0 +1,14 @@
+.git
+.gradle
+.idea
+.kotlin
+build
+**/build
+*.iml
+
+.env
+.env.*
+storage/
+
+project_code.txt
+*.log
