@@ -5,6 +5,7 @@ import ru.magnum.application.CreateTrackService
 import ru.magnum.application.DeleteTrackService
 import ru.magnum.application.UpdateTrackService
 import ru.magnum.data.media.TrackAudioProvider
+import ru.magnum.data.repository.ReferenceRepository
 import ru.magnum.data.repository.TrackAdminRepository
 import ru.magnum.data.repository.TrackMediaRepositoryImpl
 import ru.magnum.data.repository.TrackRepositoryImpl
@@ -25,6 +26,12 @@ val appModule = module {
         TrackMediaRepositoryImpl(
             databaseFactory = get(),
             fileStorage = get()
+        )
+    }
+
+    single {
+        ReferenceRepository(
+            databaseFactory = get()
         )
     }
 

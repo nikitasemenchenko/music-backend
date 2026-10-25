@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+
+    <title>Music Admin</title>
+
+    <link rel="stylesheet" href="/admin/style.css">
+    <script src="/admin/app.js" defer></script>
+</head>
+<body>
+
+<div class="layout">
+
+    <aside class="sidebar">
+        <div class="brand">
+            <span>Music Admin</span>
+        </div>
+
+        <nav class="navigation">
+            <a href="/admin/" class="nav-link active">
+                Каталог треков
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+
+        <header class="page-header">
+            <div>
+                <h1>Каталог треков</h1>
+            </div>
+
+            <div class="header-actions">
+                <button id="refresh-btn" class="btn btn-secondary">
+                    Обновить
+                </button>
+
+                <button id="add-track-btn" class="btn btn-primary">
+                    + Добавить трек
+                </button>
+            </div>
+        </header>
+
+        <section class="stats">
+            <div class="stat-card">
+                <span class="stat-label">Всего треков</span>
+                <strong id="tracks-count">0</strong>
+            </div>
+        </section>
+
+        <section class="catalog-panel">
+
+            <div class="catalog-header">
+                <h2>Все композиции</h2>
+
+                <input
+                        id="search-input"
+                        class="search-input"
+                        type="search"
+                        placeholder="По названию или исполнителю"
+                        aria-label="Поиск треков"
+                >
+            </div>
+
+            <p id="notice" class="notice" role="alert" hidden></p>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Обложка</th>
+                        <th>Название</th>
+                        <th>Исполнитель</th>
+                        <th>Альбом</th>
+                        <th>Длительность</th>
+                        <th>Действия</th>
+                    </tr>
+                    </thead>
+
+                    <tbody id="tracks-body"></tbody>
+                </table>
+            </div>
+
+            <p id="empty-state" class="empty-state" hidden>
+                Треки не найдены
+            </p>
+        </section>
+    </main>
+</div>
+
+<section id="player-panel" class="player-panel" hidden>
+    <div class="player-info">
+        <span class="player-label">Сейчас играет</span>
+        <strong id="playing-title"></strong>
+    </div>
+
+    <audio id="audio-player" controls preload="none"></audio>
+
+    <button
+            id="close-player"
+            class="close-player"
+            aria-label="Закрыть плеер"
+    >
+        ✕
+    </button>
+</section>
+
+<dialog id="track-dialog" class="track-dialog">
+
+    <form id="track-form">
+
+        <div class="form-header">
+            <h2 id="form-title">Добавление трека</h2>
+
+            <button type="button"
+                    id="cancel-track-btn"
+                    class="close-player">
+                ✕
+            </button>
+        </div>
+
+        <p id="form-error" class="form-error" hidden></p>
+
+        <div class="form-field">
+            <label for="track-title">Название трека *</label>
+
+            <input id="track-title"
+                   type="text"
+                   maxlength="255"
+                   required>
+        </div>
+
+        <div class="form-grid">
+
+            <div class="form-field">
+                <label for="track-duration">
+                    Длительность в секундах *
+                </label>
+
+                <input id="track-duration"
+                       type="number"
+                       min="0.001"
+                       max="2147483"
+                       step="0.001"
+                       placeholder="Заполнится после выбора MP3"
+                       required>
+            </div>
+
+            <div class="form-field">
+                <label for="track-release-date">
+                    Дата выпуска
+                </label>
+
+                <input id="track-release-date" type="date">
+            </div>
+
+        </div>
+
+        <div class="form-field">
+            <label for="track-artists">Исполнители *</label>
+
+            <select id="track-artists" multiple size="4"></select>
+
+            <button type="button"
+                    class="reference-add-btn"
+                    data-create-reference="artists">
+                + Создать исполнителя
+            </button>
+        </div>
+
+        <div class="form-field">
+            <label for="track-albums">Альбомы</label>
+
+            <select id="track-albums" multiple size="3"></select>
+
+            <button type="button"
+                    class="reference-add-btn"
+                    data-create-reference="albums">
+                + Создать альбом
+            </button>
+        </div>
+
+        <div class="form-field">
+            <label for="track-genres">Жанры</label>
+
+            <select id="track-genres" multiple size="3"></select>
+
+            <button type="button"
+                    class="reference-add-btn"
+                    data-create-reference="genres">
+                + Создать жанр
+            </button>
+        </div>
+
+        <div class="form-field">
+            <label for="track-audio">MP3</label>
+
+            <input id="track-audio"
+                   type="file"
+                   accept=".mp3,audio/mpeg">
+        </div>
+
+        <div class="form-field">
+            <label for="track-cover">Обложка</label>
+
+            <input id="track-cover"
+                   type="file"
+                   accept=".jpg,.jpeg,.png,.webp">
+        </div>
+
+        <div class="form-footer">
+            <button type="button"
+                    id="cancel-track-footer"
+                    class="btn btn-secondary">
+                Отмена
+            </button>
+
+            <button type="submit"
+                    id="save-track-btn"
+                    class="btn btn-primary">
+                Сохранить
+            </button>
+        </div>
+
+    </form>
+
+</dialog>
+
+</body>
+</html>
