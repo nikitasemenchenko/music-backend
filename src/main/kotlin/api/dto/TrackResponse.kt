@@ -13,5 +13,7 @@ data class TrackResponse(
     val genres: List<GenreResponse>,
     val durationMs: Int,
     @Serializable(with = LocalDateSerializer::class)
-    val releaseDate: LocalDate?
+    val releaseDate: LocalDate?,
+    val coverUrl: String?,
+    val streamUrl: String
 )

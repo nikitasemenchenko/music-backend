@@ -149,6 +149,7 @@ class TrackRepositoryImpl(
             artists = artists,
             albums = albums,
             genres = genres,
+            hasCover = this[TracksTable.coverPath] != null,
             durationMs = this[TracksTable.durationMs],
             releaseDate = this[TracksTable.releaseDate],
             createdAt = this[TracksTable.createdAt],

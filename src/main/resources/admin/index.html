@@ -160,7 +160,18 @@
         <div class="form-field">
             <label for="track-artists">Исполнители *</label>
 
-            <select id="track-artists" multiple size="4"></select>
+            <input
+                    id="artists-search"
+                    type="search"
+                    placeholder="Поиск исполнителя..."
+            >
+
+            <select
+                    id="track-artists"
+                    data-reference-type="artists"
+                    multiple
+                    size="4">
+            </select>
 
             <button type="button"
                     class="reference-add-btn"
@@ -172,7 +183,18 @@
         <div class="form-field">
             <label for="track-albums">Альбомы</label>
 
-            <select id="track-albums" multiple size="3"></select>
+            <input
+                    id="albums-search"
+                    type="search"
+                    placeholder="Поиск альбома..."
+            >
+
+            <select
+                    id="track-albums"
+                    data-reference-type="albums"
+                    multiple
+                    size="3">
+            </select>
 
             <button type="button"
                     class="reference-add-btn"
@@ -184,7 +206,18 @@
         <div class="form-field">
             <label for="track-genres">Жанры</label>
 
-            <select id="track-genres" multiple size="3"></select>
+            <input
+                    id="genres-search"
+                    type="search"
+                    placeholder="Поиск жанра..."
+            >
+
+            <select
+                    id="track-genres"
+                    data-reference-type="genres"
+                    multiple
+                    size="3">
+            </select>
 
             <button type="button"
                     class="reference-add-btn"

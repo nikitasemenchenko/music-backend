@@ -26,6 +26,12 @@ fun Track.toResponse(): TrackResponse {
             )
         },
         durationMs = durationMs,
-        releaseDate = releaseDate
+        releaseDate = releaseDate,
+        coverUrl = if (hasCover) {
+            "/api/v1/tracks/$id/cover"
+        } else {
+            null
+        },
+        streamUrl = "/api/v1/tracks/$id/stream"
     )
 }

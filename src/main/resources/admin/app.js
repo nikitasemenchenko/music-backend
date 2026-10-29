@@ -121,17 +121,21 @@ function createTrackRow(track) {
 
     coverBox.className = "cover";
 
-    const coverImage = document.createElement("img");
+    if (track.coverUrl) {
+        const coverImage = document.createElement("img");
 
-    coverImage.src = `${API_URL}/${track.id}/cover`;
-    coverImage.alt = "";
-    coverImage.loading = "lazy";
+        coverImage.src = track.coverUrl;
+        coverImage.alt = "";
+        coverImage.loading = "lazy";
 
-    coverImage.addEventListener("error", () => {
+        coverImage.addEventListener("error", () => {
+            coverBox.textContent = "♫";
+        });
+
+        coverBox.appendChild(coverImage);
+    } else {
         coverBox.textContent = "♫";
-    });
-
-    coverBox.appendChild(coverImage);
+    }
     coverCell.appendChild(coverBox);
 
     // Название
@@ -235,7 +239,7 @@ function playTrack(track) {
     playingTrackId = track.id;
 
     playingTitle.textContent = track.title;
-    audioPlayer.src = `${API_URL}/${track.id}/stream`;
+    audioPlayer.src = track.streamUrl;
 
     playerPanel.hidden = false;
 
@@ -378,6 +382,29 @@ const genresSelect = document.getElementById("track-genres");
 const audioInput = document.getElementById("track-audio");
 const coverInput = document.getElementById("track-cover");
 
+const referenceSearchInputs = {
+    artists: document.getElementById("artists-search"),
+    albums: document.getElementById("albums-search"),
+    genres: document.getElementById("genres-search")
+};
+
+const referenceSelects = {
+    artists: artistsSelect,
+    albums: albumsSelect,
+    genres: genresSelect
+};
+
+const referenceTextKeys = {
+    artists: "name",
+    albums: "title",
+    genres: "name"
+};
+
+let selectedReferenceIds = {
+    artists: new Set(),
+    albums: new Set(),
+    genres: new Set()
+};
 
 // Определяем продолжительность выбранного MP3
 function readAudioDurationMs(file) {
@@ -510,53 +537,82 @@ async function loadReferences() {
 
 // Читаем выбранные ID из select
 function getSelectedIds(select) {
-    return Array.from(select.selectedOptions)
-        .map(option => Number(option.value));
+    const type = select.dataset.referenceType;
+
+    return Array.from(selectedReferenceIds[type]);
 }
 
 
-// Заполняем один select
-function fillSelect(select, items, textKey, selectedIds) {
+// Перерисовываем варианты
+function fillSelect(type) {
+    const select = referenceSelects[type];
+    const items = references[type];
+    const textKey = referenceTextKeys[type];
+
+    const query = referenceSearchInputs[type]
+        .value.trim().toLocaleLowerCase();
+
+    const selectedIds = selectedReferenceIds[type];
+
     select.replaceChildren();
 
-    const selectedSet = new Set(selectedIds);
-
     items.forEach(item => {
+        const label = item[textKey];
+
+        // Показываем найденные и уже выбранные элементы
+        if (
+            !label.toLocaleLowerCase().includes(query) &&
+            !selectedIds.has(item.id)
+        ) {
+            return;
+        }
+
         const option = document.createElement("option");
 
         option.value = String(item.id);
-        option.textContent = item[textKey];
-        option.selected = selectedSet.has(item.id);
+        option.textContent = label;
+        option.selected = selectedIds.has(item.id);
 
         select.appendChild(option);
     });
 }
 
 
-// Заполняем все референсы
+// Устанавливаем выбранные ID и обновляем списки
 function renderReferenceSelects(selected = {}) {
-    fillSelect(
-        artistsSelect,
-        references.artists,
-        "name",
-        selected.artistIds || []
-    );
+    selectedReferenceIds = {
+        artists: new Set(selected.artistIds || []),
+        albums: new Set(selected.albumIds || []),
+        genres: new Set(selected.genreIds || [])
+    };
 
-    fillSelect(
-        albumsSelect,
-        references.albums,
-        "title",
-        selected.albumIds || []
-    );
-
-    fillSelect(
-        genresSelect,
-        references.genres,
-        "name",
-        selected.genreIds || []
-    );
+    Object.keys(referenceSelects).forEach(fillSelect);
 }
 
+Object.entries(referenceSelects).forEach(([type, select]) => {
+
+    select.addEventListener("change", () => {
+        const selectedIds = new Set(
+            Array.from(select.selectedOptions)
+                .map(option => Number(option.value))
+        );
+
+        // Обновляем выбор только среди отображаемых вариантов
+        Array.from(select.options).forEach(option => {
+            const id = Number(option.value);
+
+            if (selectedIds.has(id)) {
+                selectedReferenceIds[type].add(id);
+            } else {
+                selectedReferenceIds[type].delete(id);
+            }
+        });
+    });
+
+    referenceSearchInputs[type].addEventListener("input", () => {
+        fillSelect(type);
+    });
+});
 
 // Открываем форму создания или редактирования
 async function openTrackForm(track = null) {

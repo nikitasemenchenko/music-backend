@@ -9,6 +9,7 @@ data class Track(
     val artists: List<Artist>,
     val albums: List<Album>,
     val genres: List<Genre>,
+    val hasCover: Boolean,
     val durationMs: Int,
     val releaseDate: LocalDate?,
     val createdAt: OffsetDateTime
