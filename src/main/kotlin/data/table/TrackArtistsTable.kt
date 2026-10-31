@@ -12,7 +12,7 @@ object TrackArtistsTable: Table("track_artists") {
     val artistId = reference(
         name = "artist_id",
         refColumn = ArtistsTable.id,
-        onDelete = ReferenceOption.CASCADE
+        onDelete = ReferenceOption.RESTRICT
     )
     override val primaryKey = PrimaryKey(trackId, artistId)
 }

@@ -6,7 +6,7 @@
     <title>Music Admin</title>
 
     <link rel="stylesheet" href="/admin/style.css">
-    <script src="/admin/app.js" defer></script>
+    <script type="module" src="/admin/main.js"></script>
 </head>
 <body>
 
@@ -38,6 +38,10 @@
 
                 <button id="add-track-btn" class="btn btn-primary">
                     + Добавить трек
+                </button>
+
+                <button id="manage-references-btn" class="btn btn-secondary">
+                    Управление
                 </button>
             </div>
         </header>
@@ -259,6 +263,132 @@
     </form>
 
 </dialog>
+<dialog id="references-dialog" class="track-dialog references-dialog">
 
+    <div class="references-dialog-content">
+
+        <div class="form-header">
+            <h2>Управление справочниками</h2>
+
+            <button type="button"
+                    id="close-references-btn"
+                    class="close-player">
+                ✕
+            </button>
+        </div>
+
+        <p id="references-notice"
+           class="references-notice"
+           hidden></p>
+
+        <div class="reference-management-grid">
+
+            <!-- Исполнители -->
+            <section class="reference-management-section">
+                <div class="reference-management-header">
+                    <h3>Исполнители</h3>
+                    <button type="button"
+                            class="reference-add-btn"
+                            data-manage-create="artists">
+                        + Добавить
+                    </button>
+                </div>
+
+                <input type="search"
+                       id="manage-artists-search"
+                       class="reference-management-search"
+                       placeholder="Поиск исполнителя...">
+
+                <div id="reference-artists-list"
+                     class="reference-management-list"></div>
+            </section>
+
+            <!-- Альбомы -->
+            <section class="reference-management-section">
+                <div class="reference-management-header">
+                    <h3>Альбомы</h3>
+                    <button type="button"
+                            class="reference-add-btn"
+                            data-manage-create="albums">
+                        + Добавить
+                    </button>
+                </div>
+
+                <input type="search"
+                       id="manage-albums-search"
+                       class="reference-management-search"
+                       placeholder="Поиск альбома...">
+
+                <div id="reference-albums-list"
+                     class="reference-management-list"></div>
+            </section>
+
+            <!-- Жанры -->
+            <section class="reference-management-section">
+                <div class="reference-management-header">
+                    <h3>Жанры</h3>
+                    <button type="button"
+                            class="reference-add-btn"
+                            data-manage-create="genres">
+                        + Добавить
+                    </button>
+                </div>
+
+                <input type="search"
+                       id="manage-genres-search"
+                       class="reference-management-search"
+                       placeholder="Поиск жанра...">
+
+                <div id="reference-genres-list"
+                     class="reference-management-list"></div>
+            </section>
+
+        </div>
+    </div>
+</dialog>
+<dialog id="album-dialog" class="track-dialog album-dialog">
+    <form id="album-form" class="album-form">
+
+        <div class="form-header">
+            <h2>Создание альбома</h2>
+
+            <button type="button"
+                    id="cancel-album-btn"
+                    class="close-player">
+                ✕
+            </button>
+        </div>
+
+        <p id="album-error" class="form-error" hidden></p>
+
+        <div class="form-field">
+            <label for="album-title">Название альбома *</label>
+
+            <input id="album-title"
+                   type="text"
+                   maxlength="255"
+                   required>
+        </div>
+
+        <div class="form-field">
+            <label for="album-release-date">Дата выхода</label>
+
+            <input id="album-release-date" type="date">
+        </div>
+
+        <div class="form-footer">
+            <button type="button"
+                    id="cancel-album-footer"
+                    class="btn btn-secondary">
+                Отмена
+            </button>
+
+            <button type="submit" class="btn btn-primary">
+                Создать альбом
+            </button>
+        </div>
+
+    </form>
+</dialog>
 </body>
 </html>

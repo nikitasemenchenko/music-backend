@@ -1,5 +1,6 @@
 package ru.magnum.api.dto
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import ru.magnum.api.serialization.LocalDateSerializer
 import java.time.LocalDate
@@ -19,6 +20,8 @@ data class CreateNameRequest(
 @Serializable
 data class CreateAlbumRequest(
     val title: String,
+
+    @SerialName("release_date")
     @Serializable(with = LocalDateSerializer::class)
     val releaseDate: LocalDate? = null
 )

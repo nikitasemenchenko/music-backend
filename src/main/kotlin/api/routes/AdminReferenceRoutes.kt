@@ -15,6 +15,11 @@ import ru.magnum.api.dto.CreateAlbumRequest
 import ru.magnum.api.dto.CreateNameRequest
 import ru.magnum.api.dto.GenreResponse
 import ru.magnum.api.dto.ReferencesResponse
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.routing.delete
+import ru.magnum.api.dto.ErrorResponse
+import ru.magnum.data.repository.DeleteReferenceResult
+import java.sql.SQLException
 
 fun Route.adminReferenceRoutes() {
     val repository by inject<ReferenceRepository>()
@@ -66,6 +71,23 @@ fun Route.adminReferenceRoutes() {
             )
         }
 
+        delete("/artists/{id}") {
+            call.respondReferenceDeletion { id ->
+                repository.deleteArtist(id)
+            }
+        }
+
+        delete("/albums/{id}") {
+            call.respondReferenceDeletion{ id ->
+                repository.deleteAlbum(id)
+            }
+        }
+
+        delete("/genres/{id}") {
+            call.respondReferenceDeletion { id ->
+                repository.deleteGenre(id)
+            }
+        }
     }
 }
 
@@ -81,4 +103,53 @@ private fun validateName(
         "Name length must not be greater than $maxLength"
     }
     return result
+}
+
+private suspend fun ApplicationCall.respondReferenceDeletion(
+    operation: suspend (Int) -> DeleteReferenceResult
+) {
+    val id = parameters["id"]?.toIntOrNull()?.takeIf { it > 0 }
+
+    if (id == null) {
+        respond(
+            HttpStatusCode.BadRequest,
+            ErrorResponse("Invalid id")
+        )
+        return
+    }
+
+    val result = try {
+        operation(id)
+    } catch (e: Exception) {
+        val isForeignKeyViolation =
+            generateSequence<Throwable>(e) { it.cause }
+                .filterIsInstance<SQLException>()
+                .any { it.sqlState == "23503" }
+
+        if (isForeignKeyViolation) {
+            DeleteReferenceResult.IN_USE
+        } else {
+            throw e
+        }
+    }
+
+    when (result) {
+        DeleteReferenceResult.DELETED -> {
+            respond(HttpStatusCode.NoContent)
+        }
+
+        DeleteReferenceResult.NOT_FOUND -> {
+            respond(
+                HttpStatusCode.NotFound,
+                ErrorResponse("Not found")
+            )
+        }
+
+        DeleteReferenceResult.IN_USE -> {
+            respond(
+                HttpStatusCode.Conflict,
+                ErrorResponse("Used by tracks")
+            )
+        }
+    }
 }

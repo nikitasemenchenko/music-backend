@@ -127,15 +127,15 @@ class TrackApiIntegrationTest {
         )
 
         val createMetadata = """
-            {
-                "title": "Test Track",
-                "artistIds": [$artistId],
-                "albumIds": [$albumId],
-                "genreIds": [$genreId],
-                "durationMs": 180000,
-                "releaseDate": "2026-05-10"
-            }
-        """.trimIndent()
+    {
+        "title": "Test Track",
+        "artist_ids": [$artistId],
+        "album_ids": [$albumId],
+        "genre_ids": [$genreId],
+        "duration_ms": 180000,
+        "release_date": "2026-05-10"
+    }
+""".trimIndent()
 
         // 1. CREATE
         val created = client.submitFormWithBinaryData(
@@ -197,6 +197,46 @@ class TrackApiIntegrationTest {
                 .jsonPrimitive.int
         )
 
+        // нельзя удалять исполнителя используемого треком
+        val deleteArtist = client.delete(
+            "/api/v1/admin/references/artists/$artistId"
+        )
+
+        assertEquals(
+            HttpStatusCode.Conflict,
+            deleteArtist.status
+        )
+
+        // нельзя удалять альбом используемый треком
+        val deleteAlbum = client.delete(
+            "/api/v1/admin/references/albums/$albumId"
+        )
+
+        assertEquals(
+            HttpStatusCode.Conflict,
+            deleteAlbum.status
+        )
+
+        // нельзя удалять жанр используемый треком
+        val deleteGenre = client.delete(
+            "/api/v1/admin/references/genres/$genreId"
+        )
+
+        assertEquals(
+            HttpStatusCode.Conflict,
+            deleteGenre.status
+        )
+
+        assertEquals(
+            180000,
+            trackJson.getValue("duration_ms").jsonPrimitive.int
+        )
+
+        assertEquals(
+            "2026-05-10",
+            trackJson.getValue("release_date").jsonPrimitive.content
+        )
+
         // COVER
         val receivedCover = client.get(
             "/api/v1/tracks/$id/cover"
@@ -233,13 +273,13 @@ class TrackApiIntegrationTest {
         val updateMetadata = """
             {
                 "title": "Updated Track",
-                "artistIds": [$artistId],
-                "albumIds": [],
-                "genreIds": [$genreId],
-                "durationMs": 200000,
-                "releaseDate": null
+                "artist_ids": [$artistId],
+                "album_ids": [],
+                "genre_ids": [$genreId],
+                "duration_ms": 200000,
+                "release_date": null
             }
-        """.trimIndent()
+            """.trimIndent()
 
         val updated = client.put(
             "/api/v1/admin/tracks/$id"
@@ -308,6 +348,35 @@ class TrackApiIntegrationTest {
             afterDelete.status
         )
 
+        // После удаления трека его связи тоже должны удалиться
+
+        val deletedArtist = client.delete(
+            "/api/v1/admin/references/artists/$artistId"
+        )
+
+        assertEquals(
+            HttpStatusCode.NoContent,
+            deletedArtist.status
+        )
+
+        val deletedAlbum = client.delete(
+            "/api/v1/admin/references/albums/$albumId"
+        )
+
+        assertEquals(
+            HttpStatusCode.NoContent,
+            deletedAlbum.status
+        )
+
+        val deletedGenre = client.delete(
+            "/api/v1/admin/references/genres/$genreId"
+        )
+
+        assertEquals(
+            HttpStatusCode.NoContent,
+            deletedGenre.status
+        )
+
         // Физические файлы тоже должны быть удалены
         assertEquals(
             0L,
@@ -368,14 +437,14 @@ class TrackApiIntegrationTest {
                 append(
                     "metadata",
                     """
-                    {
-                        "title": "Invalid Audio",
-                        "artistIds": [1],
-                        "albumIds": [],
-                        "genreIds": [],
-                        "durationMs": 1000
-                    }
-                    """.trimIndent()
+                        {
+                            "title": "Invalid Audio",
+                            "artist_ids": [1],
+                            "album_ids": [],
+                            "genre_ids": [],
+                            "duration_ms": 1000
+                        }
+                        """.trimIndent()
                 )
 
                 append(
@@ -394,6 +463,26 @@ class TrackApiIntegrationTest {
         assertEquals(
             HttpStatusCode.BadRequest,
             invalidAudio.status
+        )
+
+        // Несуществующий исполнитель
+        val invalidArtist = client.delete(
+            "/api/v1/admin/references/artists/99999999"
+        )
+
+        assertEquals(
+            HttpStatusCode.NotFound,
+            invalidArtist.status
+        )
+
+        // Некорректный ID жанра
+        val invalidGenre = client.delete(
+            "/api/v1/admin/references/genres/0"
+        )
+
+        assertEquals(
+            HttpStatusCode.BadRequest,
+            invalidGenre.status
         )
     }
 }
